@@ -16,4 +16,4 @@ module load parmetis/4.0.3/intel-19.0.3.199-intel-mpi-int32-real64
 
 source activate mariobros
 
-python train.py
+python train.py --checkpoint checkpoints/2024-03-13T07-34-16/mario_net_10.chkpt

@@ -4,9 +4,15 @@ import datetime
 from mario import Mario
 from env import create_env
 from metric import MetricLogger
+import argparse
 
 
 def main():
+    # parser
+    parser = argparse.ArgumentParser(description="Train Mario")
+    parser.add_argument("--checkpoint", type=str, help="path to checkpoint file")
+    args = parser.parse_args()
+
     use_cuda = torch.cuda.is_available()
     print(f"Using CUDA: {use_cuda}")
     print()
@@ -22,6 +28,12 @@ def main():
                   action_dim=env.action_space.n,
                   save_dir=save_dir,
                   save_every=5e5)
+    
+    if args.checkpoint:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        check = torch.load(args.checkpoint, map_location=device)
+        mario.net.load_state_dict(check["model"])
+        print(f"Model loaded from {args.checkpoint}")
 
     logger = MetricLogger(save_dir)
 
