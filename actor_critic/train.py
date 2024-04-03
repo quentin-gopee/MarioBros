@@ -23,7 +23,7 @@ def main():
     print("Creating environment...")
     env = create_env()
 
-    mario = ActorCriticMario(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, save_every=1000)
+    mario = ActorCriticMario(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, save_every=20000)
     
     if args.checkpoint:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -33,7 +33,8 @@ def main():
 
     logger = MetricLogger(save_dir)
 
-    episodes = 4
+    episodes = 100
+    local_steps = 50
 
     for e in range(episodes):
 
@@ -41,34 +42,37 @@ def main():
 
         # Play the game!
         while True:
+            mario.clear_cache()
 
-            # Run agent on the state
-            action = mario.act(state)
+            for _ in range(local_steps):
+                # Run agent on the state
+                action, value, log_prob, entropy = mario.act(state)
+                
+                # Agent performs action
+                state, reward, done, trunc, info = env.step(action)
 
-            # Agent performs action
-            next_state, reward, done, trunc, info = env.step(action)
+                # Log
+                logger.log_step(reward)
 
-            # Remember
-            mario.cache(state, next_state, action, reward, done)
+                # Remember
+                mario.cache(value, log_prob, reward, entropy)
 
-            # Learn
-            q, loss = mario.learn()
+                # Check if end of game
+                if done or info["flag_get"]:
+                    break
 
-            # Logging
-            logger.log_step(reward, loss, q)
+            q, actor_loss, critic_loss, entropy_loss, total_loss = mario.learn(state, done)
 
-            # Update state
-            state = next_state
+            logger.log_learn(q, actor_loss, critic_loss, entropy_loss, total_loss)
 
-            # Check if end of game
             if done or info["flag_get"]:
                 break
 
         logger.log_episode()
+        print(f"Episode {e} - Step {mario.curr_step}")
 
-        if (e % 20 == 0) or (e == episodes - 1):
-            logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.curr_step)
-
+        if (e % 5 == 0) or (e == episodes - 1):
+            logger.record(episode=e, step=mario.curr_step)
 
 if __name__ == "__main__":
     main()

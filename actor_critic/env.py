@@ -12,6 +12,7 @@ from nes_py.wrappers import JoypadSpace
 
 # Super Mario environment for OpenAI Gym
 import gym_super_mario_bros
+from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 
 
 class SkipFrame(gym.Wrapper):
@@ -80,7 +81,8 @@ def create_env(skip=4, resize_shape=84, num_stack=4):
     # Limit the action-space to
     #   0. walk right
     #   1. jump right
-    env = JoypadSpace(env, [["right"], ["right", "A"]])
+    # env = JoypadSpace(env, [["right"], ["right", "A"]])
+    env = JoypadSpace(env, SIMPLE_MOVEMENT) # SIMPLE_MOVEMENT = [['NOOP'], ['right'], ['right', 'A'], ['right', 'B'], ['right', 'A', 'B'], ['A'], ['left']]
 
     env.reset()
     next_state, reward, done, trunc, info = env.step(action=0)

@@ -11,36 +11,19 @@ class DeepCnnActorCriticNetwork(nn.Module):
         if w != 84:
             raise ValueError(f"Expecting input width: 84, got: {w}")
 
-
         linear = nn.Linear
 
         self.feature = nn.Sequential(
-            nn.Conv2d(in_channels=c, out_channels=32, kernel_size=4, stride=1),
+            nn.Conv2d(in_channels=c, out_channels=32, kernel_size=8, stride=4),
             nn.ReLU(),
-            nn.Conv2d(
-                in_channels=32,
-                out_channels=64,
-                kernel_size=5,
-                stride=2),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=128,
-                kernel_size=4,
-                stride=1),
-            nn.ReLU(),
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=256,
-                kernel_size=4,
-                stride=2),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=4),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            linear(50176, 512),
-            nn.ReLU()
-        )
+            nn.Linear(3136, 512),
+            nn.ReLU())
+        
         self.actor = linear(512, output_size)
         self.critic = linear(512, 1)
 
