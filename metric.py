@@ -95,6 +95,7 @@ class MetricLogger:
         mean_ep_loss = np.round(np.mean(self.ep_avg_losses[-100:]), 3)
         mean_ep_q = np.round(np.mean(self.ep_avg_qs[-100:]), 3)
         mean_ep_x_pos = np.round(np.mean(self.ep_avg_x_pos[-100:]), 3) 
+        max_x_pos = self.max_x_pos[-1]
         self.moving_avg_ep_rewards.append(mean_ep_reward)
         self.moving_avg_ep_lengths.append(mean_ep_length)
         self.moving_avg_ep_avg_losses.append(mean_ep_loss)
@@ -115,7 +116,7 @@ class MetricLogger:
             f"Mean Q Value {mean_ep_q} - "
             f"Time Delta {time_since_last_record} - "
             f"Mean X Pos {mean_ep_x_pos} - "
-            f"Max X Pos {max(self.curr_x_pos) if self.curr_x_pos else 0} - "
+            f"Max X Pos {max_x_pos} - "
             f"Time {datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
         )
 
