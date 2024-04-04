@@ -24,18 +24,23 @@ class MetricLogger:
         self.ep_lengths_plot = save_dir / "length_plot.jpg"
         self.ep_avg_losses_plot = save_dir / "loss_plot.jpg"
         self.ep_avg_qs_plot = save_dir / "q_plot.jpg"
+        self.avg_x_pos_plot = save_dir / "x_pos_plot.jpg"
+        self.max_x_pos_plot = save_dir / "max_x_pos_plot.jpg"
 
         # History metrics
         self.ep_rewards = []
         self.ep_lengths = []
         self.ep_avg_losses = []
         self.ep_avg_qs = []
+        self.ep_avg_x_pos = []
+        self.max_x_pos = []
 
         # Moving averages, added for every call to record()
         self.moving_avg_ep_rewards = []
         self.moving_avg_ep_lengths = []
         self.moving_avg_ep_avg_losses = []
         self.moving_avg_ep_avg_qs = []
+        self.moving_avg_ep_x_pos = []
 
         # Current episode metric
         self.init_episode()
@@ -44,11 +49,14 @@ class MetricLogger:
         self.record_time = time.time()
 
         # Episode data
-        self.episode_data = pd.DataFrame(columns=['Episode', 'Step', 'Epsilon', 'MeanReward', 'MeanLength', 'MeanLoss', 'MeanQValue', 'TimeDelta', 'Time'])
+        self.episode_data = pd.DataFrame(columns=['Episode', 'Step', 'Epsilon', 'MeanReward', 'MeanLength', 'MeanLoss', 'MeanQValue', 'TimeDelta', 'Time', 'MeanXPos', 'MaxXPos'])
 
-    def log_step(self, reward, loss, q):
+    def log_step(self, reward, loss, q, x_pos):
         self.curr_ep_reward += reward
         self.curr_ep_length += 1
+        # we sum the x position of the agent within a episode
+        self.curr_ep_x_pos +=  x_pos
+        self.curr_x_pos.append(x_pos)
         if loss:
             self.curr_ep_loss += loss
             self.curr_ep_q += q
@@ -64,8 +72,12 @@ class MetricLogger:
         else:
             ep_avg_loss = np.round(self.curr_ep_loss / self.curr_ep_loss_length, 5)
             ep_avg_q = np.round(self.curr_ep_q / self.curr_ep_loss_length, 5)
+            ep_avg_x = np.round(self.curr_ep_x_pos/self.curr_ep_length, 5)
         self.ep_avg_losses.append(ep_avg_loss)
         self.ep_avg_qs.append(ep_avg_q)
+        # we add avergae x position to the list
+        self.ep_avg_x_pos.append(ep_avg_x)
+        self.max_x_pos.append(max(self.curr_x_pos) if self.curr_x_pos else 0)
 
         self.init_episode()
 
@@ -75,16 +87,20 @@ class MetricLogger:
         self.curr_ep_loss = 0.0
         self.curr_ep_q = 0.0
         self.curr_ep_loss_length = 0
+        self.curr_ep_x_pos = 0
+        self.curr_x_pos = []
 
     def record(self, episode, epsilon, step):
         mean_ep_reward = np.round(np.mean(self.ep_rewards[-100:]), 3)
         mean_ep_length = np.round(np.mean(self.ep_lengths[-100:]), 3)
         mean_ep_loss = np.round(np.mean(self.ep_avg_losses[-100:]), 3)
         mean_ep_q = np.round(np.mean(self.ep_avg_qs[-100:]), 3)
+        mean_ep_x_pos = np.round(np.mean(self.ep_avg_x_pos[-100:]), 3) 
         self.moving_avg_ep_rewards.append(mean_ep_reward)
         self.moving_avg_ep_lengths.append(mean_ep_length)
         self.moving_avg_ep_avg_losses.append(mean_ep_loss)
         self.moving_avg_ep_avg_qs.append(mean_ep_q)
+        self.moving_avg_ep_x_pos.append(mean_ep_x_pos)
 
         last_record_time = self.record_time
         self.record_time = time.time()
@@ -99,6 +115,8 @@ class MetricLogger:
             f"Mean Loss {mean_ep_loss} - "
             f"Mean Q Value {mean_ep_q} - "
             f"Time Delta {time_since_last_record} - "
+            f"Mean X Pos {mean_ep_x_pos} - "
+            f"Max X Pos {max(self.curr_x_pos) if self.curr_x_pos else 0} - "
             f"Time {datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
         )
 
@@ -120,13 +138,15 @@ class MetricLogger:
             'MeanLoss': mean_ep_loss,
             'MeanQValue': mean_ep_q,
             'TimeDelta': time_since_last_record,
+            "MeanXPos": mean_ep_x_pos,
+            "MaxXPos": max(self.curr_x_pos) if self.curr_x_pos else 0,
             'Time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
 
         # Save the DataFrame to CSV
         self.episode_data.to_csv(self.metrics_file, index=False)
 
-        for metric in ["ep_lengths", "ep_avg_losses", "ep_avg_qs", "ep_rewards"]:
+        for metric in ["ep_lengths", "ep_avg_losses", "ep_avg_qs", "ep_rewards", "ep_avg_x_pos", "max_x_pos"]:
             plt.clf()
             plt.plot(getattr(self, f"moving_avg_{metric}"), label=f"moving_avg_{metric}")
             plt.legend()

@@ -55,7 +55,7 @@ def main():
             q, loss = mario.learn()
 
             # Logging
-            logger.log_step(reward, loss, q)
+            logger.log_step(reward, loss, q, info['x_pos'])
 
             # Update state
             state = next_state
