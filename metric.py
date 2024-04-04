@@ -24,7 +24,7 @@ class MetricLogger:
         self.ep_lengths_plot = save_dir / "length_plot.jpg"
         self.ep_avg_losses_plot = save_dir / "loss_plot.jpg"
         self.ep_avg_qs_plot = save_dir / "q_plot.jpg"
-        self.avg_x_pos_plot = save_dir / "x_pos_plot.jpg"
+        self.ep_x_pos_plot = save_dir / "x_pos_plot.jpg"
         self.max_x_pos_plot = save_dir / "max_x_pos_plot.jpg"
 
         # History metrics
@@ -55,7 +55,6 @@ class MetricLogger:
         self.curr_ep_reward += reward
         self.curr_ep_length += 1
         # we sum the x position of the agent within a episode
-        self.curr_ep_x_pos +=  x_pos
         self.curr_x_pos.append(x_pos)
         if loss:
             self.curr_ep_loss += loss
@@ -72,7 +71,8 @@ class MetricLogger:
         else:
             ep_avg_loss = np.round(self.curr_ep_loss / self.curr_ep_loss_length, 5)
             ep_avg_q = np.round(self.curr_ep_q / self.curr_ep_loss_length, 5)
-            ep_avg_x = np.round(self.curr_ep_x_pos/self.curr_ep_length, 5)
+        
+        ep_avg_x = np.round(np.mean(self.curr_x_pos), 5)
         self.ep_avg_losses.append(ep_avg_loss)
         self.ep_avg_qs.append(ep_avg_q)
         # we add avergae x position to the list
@@ -87,7 +87,6 @@ class MetricLogger:
         self.curr_ep_loss = 0.0
         self.curr_ep_q = 0.0
         self.curr_ep_loss_length = 0
-        self.curr_ep_x_pos = 0
         self.curr_x_pos = []
 
     def record(self, episode, epsilon, step):
@@ -145,9 +144,14 @@ class MetricLogger:
 
         # Save the DataFrame to CSV
         self.episode_data.to_csv(self.metrics_file, index=False)
-
-        for metric in ["ep_lengths", "ep_avg_losses", "ep_avg_qs", "ep_rewards", "ep_avg_x_pos", "max_x_pos"]:
+        
+        for metric in ["ep_lengths", "ep_avg_losses", "ep_avg_qs", "ep_rewards", "ep_x_pos"]:
             plt.clf()
             plt.plot(getattr(self, f"moving_avg_{metric}"), label=f"moving_avg_{metric}")
             plt.legend()
             plt.savefig(getattr(self, f"{metric}_plot"))
+            
+        plt.clf()
+        plt.plot(self.max_x_pos, label="Max X Pos")
+        plt.legend()
+        plt.savefig(getattr(self, f"max_x_pos_plot"))

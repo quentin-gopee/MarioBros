@@ -106,6 +106,8 @@ class MetricLogger:
             ep_avg_entropy_loss = 0
             ep_avg_loss = 0
             ep_avg_q = 0
+            ep_avg_x = 0
+            print(ep_avg_x)
         else:
             ep_avg_actor_loss = np.round(self.curr_ep_actor_loss / self.curr_ep_loss_length, 5)
             ep_avg_critic_loss = np.round(self.curr_ep_critic_loss / self.curr_ep_loss_length, 5)
