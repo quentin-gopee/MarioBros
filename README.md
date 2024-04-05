@@ -10,7 +10,7 @@ To train the agents:
 
 ```python a2c/train.py```
 
-The checkpoints and the metrics will be saved in `checkpoint/yyyy-mm-ddThh-mm-ss`
+The checkpoints and the metrics will be saved in `checkpoints/yyyy-mm-ddThh-mm-ss`
 
 To render the game once an agent is trained:
 
