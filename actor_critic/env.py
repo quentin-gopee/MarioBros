@@ -71,12 +71,16 @@ class ResizeObservation(gym.ObservationWrapper):
         return observation
     
 
-def create_env(skip=4, resize_shape=84, num_stack=4):
+def create_env(skip=4, resize_shape=84, num_stack=4, render=False):
     # Initialize Super Mario environment (in v0.26 change render mode to 'human' to see results on the screen)
     if gym.__version__ < '0.26':
         env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0", new_step_api=True)
     else:
-        env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0", render_mode='rgb', apply_api_compatibility=True)
+        print("gym version is greater than 0.26")
+        if render:
+            env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0", render_mode='human', apply_api_compatibility=True)
+        else:
+            env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0", render_mode='rgb', apply_api_compatibility=True)
 
     # Limit the action-space to
     #   0. walk right
