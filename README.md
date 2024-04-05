@@ -14,6 +14,6 @@ The checkpoints and the metrics will be saved in `checkpoint/yyyy-mm-ddThh-mm-ss
 
 To render the game once an agent is trained:
 
-```python dqn/render.py --checkpoints path_to_chpkt```
+```python dqn/render.py --checkpoint path_to_chpkt```
 
-```python a2c/render.py --checkpoints path_to_chpkt```
+```python a2c/render.py --checkpoint path_to_chpkt```
